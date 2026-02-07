@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relógio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- REMOVIDO: Fontes Externas (Google Fonts) para evitar bloqueio na VNNOX -->
+    <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { 
             margin: 0; 
             overflow: hidden; 
             background: transparent; 
             color: #cabf74;
-            font-family: 'Roboto', sans-serif;
+            /* Usando fontes nativas do sistema (Segoe UI no Windows, Roboto no Android/ChromeOS, Helvetica no Linux) */
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -87,9 +89,6 @@
             document.getElementById('time').innerText = timeFormatter.format(now);
 
             // Atualiza Data Customizada
-            // O formatador padrão retorna algo como "sábado, 07/02/2026" dependendo da implementação, 
-            // mas para garantir "07/02/2026, Sábado" vamos montar manualmente com as partes.
-            
             const parts = dateFormatter.formatToParts(now);
             const day = parts.find(p => p.type === 'day').value;
             const month = parts.find(p => p.type === 'month').value;
@@ -102,9 +101,15 @@
             document.getElementById('date').innerText = `${day}/${month}/${year}, ${weekday}`;
         }
 
-        // Atualiza imediatamente e depois a cada segundo
-        updateClock();
-        setInterval(updateClock, 1000);
+        // VNNOX SAFE START: Espera a página carregar e dá um delay de segurança
+        window.onload = () => {
+             // Primeira atualização segura
+             setTimeout(() => {
+                 updateClock();
+                 // Inicia o loop
+                 setInterval(updateClock, 1000);
+             }, 300); // 300ms de delay para garantir que o player renderizou o DOM
+        };
     </script>
 </body>
 </html>

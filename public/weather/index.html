@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clima</title>
-    <!-- Google Fonts: Roboto -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- REMOVIDO: Fontes Externas e Scripts CDN (Lucide) para compatibilidade VNNOX -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"> -->
+    <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { 
             margin: 0; 
             overflow: hidden; 
             background: transparent; 
             color: #cabf74;
-            font-family: 'Roboto', sans-serif;
+            /* Fontes nativas seguras */
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -108,11 +107,56 @@
         <div class="loading">Carregando clima...</div>
     </div>
 
+    <!-- SVGs Inline para substituir Lucide (Zero dependência externa) -->
     <script>
-        // Mapeamento de Códigos WMO da Open-Meteo para Descrições e Ícones Lucide
+        const ICONS = {
+            // Sol / Limpo
+            'sun': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+            
+            // Lua / Limpo Noite
+            'moon': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
+
+            // Nublado
+            'cloud': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19c0-1.7-1.3-3-3-3h-11C1.6 16 0 14.4 0 12.5c0-1.8 1.5-3.4 3.3-3.4 1.2-3.4 4.5-5.6 8.2-5.1 2.3.3 4.3 1.9 5.3 4 .9-.2 1.8-.1 2.6.4 1.4.9 2.1 2.6 1.6 4.2"/><path d="M17.5 19h2c1.4 0 2.5-1.1 2.5-2.5s-1.1-2.5-2.5-2.5"/></svg>`,
+
+            // Sol + Nuvem
+            'cloud-sun': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>`,
+            
+            // Lua + Nuvem
+            'cloud-moon': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16a3 3 0 1 1 0 6H7a5 5 0 1 1 4.9-6Z"/><path d="M10.1 9A6 6 0 0 1 16 4a4.24 4.24 0 0 0 6 6 6 6 0 0 1-3 5.197"/></svg>`,
+
+            // Chuva
+            'cloud-rain': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>`,
+
+            // Chuva + Vento
+            'cloud-rain-wind': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m9.2 22 3-7"/><path d="m9 13-3 7"/><path d="m17 13-3 7"/></svg>`,
+
+            // Tempestade
+            'cloud-lightning': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>`,
+
+            // Nevoeiro
+            'cloud-fog': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 17H7"/><path d="M17 21H9"/></svg>`,
+
+            // Garoa
+            'cloud-drizzle': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 19v2"/><path d="M8 13v2"/><path d="M16 19v2"/><path d="M16 13v2"/><path d="M12 21v2"/><path d="M12 15v2"/></svg>`,
+            
+            // Granizo/Pancada Forte
+            'cloud-hail': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v2"/><path d="M8 14v2"/><path d="M16 20h.01"/><path d="M8 20h.01"/><path d="M12 16v2"/><path d="M12 22h.01"/></svg>`,
+            
+            // Termometro
+            'thermometer': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>`,
+            
+            // Gota
+            'droplets': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>`,
+            
+            // Ajuda / Default
+            'help-circle': `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>`
+        };
+
+        // Mapeamento de Códigos WMO da Open-Meteo para Descrições e Ícones
         const weatherMap = {
             0: { desc: 'Céu Limpo', icon: 'sun' },
-            1: { desc: 'Predom. Ensolarado', icon: 'sun-dim' },
+            1: { desc: 'Predom. Ensolarado', icon: 'sun-dim' }, // sun-dim map to sun in svg list if not present, but let's use cloud-sun
             2: { desc: 'Parcialmente Nublado', icon: 'cloud-sun' },
             3: { desc: 'Nublado', icon: 'cloud' },
             45: { desc: 'Nevoeiro', icon: 'cloud-fog' },
@@ -167,34 +211,29 @@
             // Ajuste noturno simples (se for entre 18h e 06h, muda sol para lua se o ícone for 'sun')
             const hour = new Date().getHours();
             const isNight = hour >= 18 || hour < 6;
-            let iconName = info.icon;
+            let iconKey = info.icon;
             
+            // Ajuste de ícones para noite
             if (isNight) {
-                if (iconName === 'sun') iconName = 'moon';
-                if (iconName === 'sun-dim') iconName = 'moon';
-                if (iconName === 'cloud-sun') iconName = 'cloud-moon';
+                if (iconKey === 'sun') iconKey = 'moon';
+                if (iconKey === 'sun-dim') iconKey = 'moon'; // sun-dim fallback
+                if (iconKey === 'cloud-sun') iconKey = 'cloud-moon';
             }
-
-            // Separa a descrição em palavras para garantir quebra (ex: "Pancadas de Chuva" -> "Pancadas de<br>Chuva" se precisar)
-            // Mas com o CSS word-spacing: 9999px ele já força a quebra visualmente.
-            // Vou remover o word-spacing extremo e deixar a quebra natural com max-width, 
-            // ou injetar <br> se quiser controle manual. 
-            // O pedido foi "Pancadas" e "de chuva" na linha de baixo.
-            // Vamos fazer um replace inteligente para quebrar após a primeira palavra se for longa.
             
+            // Fallback se o ícone não existir no mapa SVG
+            if (!ICONS[iconKey]) iconKey = 'help-circle';
+
+            // Tratamento de Texto
             let displayDesc = info.desc;
             if (displayDesc.split(' ').length > 2) {
-                 // Ex: "Pancadas de Chuva" -> ["Pancadas", "de", "Chuva"]
-                 // Transforma em "Pancadas<br>de Chuva"
                  const words = displayDesc.split(' ');
                  displayDesc = `${words[0]}<br>${words.slice(1).join(' ')}`;
             } else if (displayDesc.length > 10 && displayDesc.includes(' ')) {
-                 // Ex: "Parcialmente Nublado" -> "Parcialmente<br>Nublado"
                  displayDesc = displayDesc.replace(' ', '<br>');
             }
 
             const html = `
-                <i data-lucide="${iconName}" class="weather-icon"></i>
+                <div class="weather-icon">${ICONS[iconKey]}</div>
                 
                 <div class="temp-wrapper">
                     <span class="temp-value">${temp}</span>
@@ -205,25 +244,26 @@
 
                 <div class="details">
                     <div class="detail-item">
-                        <i data-lucide="thermometer" style="width:24px; height:24px;"></i>
+                        <div style="width:24px; height:24px;">${ICONS['thermometer']}</div>
                         <span>Sensação ${feelsLike}°</span>
                     </div>
                     <div class="detail-item">
-                        <i data-lucide="droplets" style="width:24px; height:24px;"></i>
+                        <div style="width:24px; height:24px;">${ICONS['droplets']}</div>
                         <span>${humidity}%</span>
                     </div>
                 </div>
             `;
 
             document.getElementById('weather-container').innerHTML = html;
-            
-            // Renderiza os ícones do Lucide
-            lucide.createIcons();
         }
 
-        // Inicializa e atualiza a cada 15 min
-        fetchWeather();
-        setInterval(fetchWeather, 15 * 60 * 1000);
+        // VNNOX SAFE START: Delay para garantir carregamento
+        window.onload = () => {
+             setTimeout(() => {
+                fetchWeather();
+                setInterval(fetchWeather, 15 * 60 * 1000);
+             }, 300);
+        };
     </script>
 </body>
 </html>
