@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima</title>
+    <!-- Google Fonts: Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: transparent; 
+            color: #cabf74;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* Ícone Principal */
+        .weather-icon {
+            width: 120px;
+            height: 120px;
+            color: #cabf74;
+            margin-bottom: 10px;
+        }
+
+        /* Temperatura Gigante */
+        .temp-wrapper {
+            display: flex;
+            align-items: flex-start;
+            line-height: 1;
+        }
+        
+        .temp-value {
+            font-size: 130px;
+            font-weight: 700;
+        }
+
+        .temp-unit {
+            font-size: 40px;
+            font-weight: 400;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        /* Descrição (Céu limpo, nublado, etc) */
+        .description {
+            font-size: 32px;
+            font-weight: 400;
+            text-transform: capitalize;
+            margin-bottom: 10px;
+            /* Limita largura para forçar quebra */
+            max-width: 300px; 
+            line-height: 1.1;
+        }
+
+        /* Rodapé com detalhes */
+        .details {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px; /* Aumentei o gap para separar melhor os blocos */
+            font-size: 20px;
+            opacity: 0.9;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column; /* Ícone em cima, texto embaixo */
+            align-items: center;
+            gap: 5px;
+        }
+
+        .loading {
+            font-size: 24px;
+            opacity: 0.5;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="weather-container">
+        <div class="loading">Carregando clima...</div>
+    </div>
+
+    <script>
+        // Mapeamento de Códigos WMO da Open-Meteo para Descrições e Ícones Lucide
+        const weatherMap = {
+            0: { desc: 'Céu Limpo', icon: 'sun' },
+            1: { desc: 'Predom. Ensolarado', icon: 'sun-dim' },
+            2: { desc: 'Parcialmente Nublado', icon: 'cloud-sun' },
+            3: { desc: 'Nublado', icon: 'cloud' },
+            45: { desc: 'Nevoeiro', icon: 'cloud-fog' },
+            48: { desc: 'Nevoeiro com Geada', icon: 'cloud-fog' },
+            51: { desc: 'Garoa Leve', icon: 'cloud-drizzle' },
+            53: { desc: 'Garoa Moderada', icon: 'cloud-drizzle' },
+            55: { desc: 'Garoa Intensa', icon: 'cloud-drizzle' },
+            61: { desc: 'Chuva Leve', icon: 'cloud-rain' },
+            63: { desc: 'Chuva Moderada', icon: 'cloud-rain' },
+            65: { desc: 'Chuva Forte', icon: 'cloud-rain-wind' },
+            80: { desc: 'Pancadas de Chuva', icon: 'cloud-hail' },
+            81: { desc: 'Pancadas Fortes', icon: 'cloud-hail' },
+            82: { desc: 'Temporal', icon: 'cloud-lightning' },
+            95: { desc: 'Tempestade', icon: 'cloud-lightning' },
+            96: { desc: 'Tempestade com Granizo', icon: 'cloud-lightning' },
+            99: { desc: 'Tempestade Severa', icon: 'cloud-lightning' },
+        };
+
+        async function fetchWeather() {
+            try {
+                // Coordenadas de Brasília
+                const lat = -15.7801;
+                const lon = -47.9292;
+                
+                const response = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&timezone=America%2FSao_Paulo`
+                );
+
+                if (!response.ok) throw new Error('Falha na API');
+
+                const data = await response.json();
+                const current = data.current;
+                
+                renderWeather(current);
+
+            } catch (error) {
+                console.error('Erro ao buscar clima:', error);
+                document.getElementById('weather-container').innerHTML = 
+                    `<div class="loading">Erro ao atualizar</div>`;
+            }
+        }
+
+        function renderWeather(data) {
+            const temp = Math.round(data.temperature_2m);
+            const feelsLike = Math.round(data.apparent_temperature);
+            const humidity = data.relative_humidity_2m;
+            const code = data.weather_code;
+
+            // Busca descrição e ícone ou usa padrão
+            const info = weatherMap[code] || { desc: 'Desconhecido', icon: 'help-circle' };
+            
+            // Ajuste noturno simples (se for entre 18h e 06h, muda sol para lua se o ícone for 'sun')
+            const hour = new Date().getHours();
+            const isNight = hour >= 18 || hour < 6;
+            let iconName = info.icon;
+            
+            if (isNight) {
+                if (iconName === 'sun') iconName = 'moon';
+                if (iconName === 'sun-dim') iconName = 'moon';
+                if (iconName === 'cloud-sun') iconName = 'cloud-moon';
+            }
+
+            // Separa a descrição em palavras para garantir quebra (ex: "Pancadas de Chuva" -> "Pancadas de<br>Chuva" se precisar)
+            // Mas com o CSS word-spacing: 9999px ele já força a quebra visualmente.
+            // Vou remover o word-spacing extremo e deixar a quebra natural com max-width, 
+            // ou injetar <br> se quiser controle manual. 
+            // O pedido foi "Pancadas" e "de chuva" na linha de baixo.
+            // Vamos fazer um replace inteligente para quebrar após a primeira palavra se for longa.
+            
+            let displayDesc = info.desc;
+            if (displayDesc.split(' ').length > 2) {
+                 // Ex: "Pancadas de Chuva" -> ["Pancadas", "de", "Chuva"]
+                 // Transforma em "Pancadas<br>de Chuva"
+                 const words = displayDesc.split(' ');
+                 displayDesc = `${words[0]}<br>${words.slice(1).join(' ')}`;
+            } else if (displayDesc.length > 10 && displayDesc.includes(' ')) {
+                 // Ex: "Parcialmente Nublado" -> "Parcialmente<br>Nublado"
+                 displayDesc = displayDesc.replace(' ', '<br>');
+            }
+
+            const html = `
+                <i data-lucide="${iconName}" class="weather-icon"></i>
+                
+                <div class="temp-wrapper">
+                    <span class="temp-value">${temp}</span>
+                    <span class="temp-unit">°C</span>
+                </div>
+
+                <div class="description">${displayDesc}</div>
+
+                <div class="details">
+                    <div class="detail-item">
+                        <i data-lucide="thermometer" style="width:24px; height:24px;"></i>
+                        <span>Sensação ${feelsLike}°</span>
+                    </div>
+                    <div class="detail-item">
+                        <i data-lucide="droplets" style="width:24px; height:24px;"></i>
+                        <span>${humidity}%</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('weather-container').innerHTML = html;
+            
+            // Renderiza os ícones do Lucide
+            lucide.createIcons();
+        }
+
+        // Inicializa e atualiza a cada 15 min
+        fetchWeather();
+        setInterval(fetchWeather, 15 * 60 * 1000);
+    </script>
+</body>
+</html>
