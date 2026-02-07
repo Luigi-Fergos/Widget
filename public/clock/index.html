@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: transparent; 
+            color: #cabf74;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Aumente este valor para dar mais espaço entre as linhas gerais */
+            gap: 20px; 
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .time {
+            font-size: 140px;
+            font-weight: 700;
+            line-height: 1;
+            /* Espaçamento específico ao redor do horário se precisar */
+            margin: 10px 0; 
+        }
+
+        .date {
+            font-size: 28px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Horário de Brasília</div>
+        <div class="time" id="time">00:00:00</div>
+        <div class="date" id="date">00/00/0000, Segunda-feira</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            
+            // Configuração para fuso de Brasília
+            const optionsTime = { 
+                timeZone: 'America/Sao_Paulo',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false
+            };
+
+            const optionsDate = {
+                timeZone: 'America/Sao_Paulo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                weekday: 'long'
+            };
+
+            // Formatadores
+            const timeFormatter = new Intl.DateTimeFormat('pt-BR', optionsTime);
+            const dateFormatter = new Intl.DateTimeFormat('pt-BR', optionsDate);
+
+            // Atualiza Hora
+            document.getElementById('time').innerText = timeFormatter.format(now);
+
+            // Atualiza Data Customizada
+            // O formatador padrão retorna algo como "sábado, 07/02/2026" dependendo da implementação, 
+            // mas para garantir "07/02/2026, Sábado" vamos montar manualmente com as partes.
+            
+            const parts = dateFormatter.formatToParts(now);
+            const day = parts.find(p => p.type === 'day').value;
+            const month = parts.find(p => p.type === 'month').value;
+            const year = parts.find(p => p.type === 'year').value;
+            let weekday = parts.find(p => p.type === 'weekday').value;
+            
+            // Capitalizar primeira letra do dia da semana
+            weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+            document.getElementById('date').innerText = `${day}/${month}/${year}, ${weekday}`;
+        }
+
+        // Atualiza imediatamente e depois a cada segundo
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
