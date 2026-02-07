@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Polyfill</title>
+    <style>
+        body { background-color: #00ff00; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        h1 { font-size: 5vw; color: black; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <h1>TESTE VERDE (POLYFILL)</h1>
+    <script>
+        // Tenta forçar recarregamento se der erro
+        window.onerror = function() {
+            document.body.style.backgroundColor = "orange";
+            document.body.innerHTML += "<br>Erro detectado";
+        };
+    </script>
+</body>
+</html>
